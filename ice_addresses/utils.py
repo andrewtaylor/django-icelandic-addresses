@@ -41,18 +41,15 @@ def address_exists(street_name, postcode, house_number=0, house_characters=''):
     if len(matches) > 1:
         return (False, 'More than one street found for this postcode')
 
-    try:
-        a = Address.objects.get(
-            street=matches.pop(),
-            house_number=house_number,
-            house_characters=house_characters)
-
-        return (True, a.id)
-
-    except Address.DoesNotExist:
-        pass
-
-    return (False, 'Address does not exist')
+    # The ICE data can contain multiple entries for the following criteria so we must treat this as a listing
+    addresses = Address.objects.filter(
+        street=matches.pop(),
+        house_number=house_number,
+        house_characters=house_characters)
+    if not addresses:
+        return (False, 'Address does not exist')
+    # Return the Id of the first record encountered, is the Id even used?
+    return (True, addresses[0].id)
 
 
 def string_to_address(string):
